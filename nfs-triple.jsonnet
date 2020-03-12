@@ -41,7 +41,8 @@ local tasks = {
       path: mountpoint,
       src: url,
       fstype: "nfs",
-      opts: defaults.options.mount
+      opts: defaults.options.mount,
+      state: "mounted"
     }
   },
   link(link): {
