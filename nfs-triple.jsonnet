@@ -15,7 +15,7 @@ local tasks = {
       name: if std.isString(names) then [names] else names
     }
   },
-  dir(path, user): {
+  dir(path, user = 'root'): {
     file: {
       path: path,
       mode: "755",
@@ -63,12 +63,18 @@ local plays = {
   } + play
 };
 
+local lib = {
+  local sep = '/',
+  butLast(a, n = 1): std.reverse(std.reverse(a)[n:]),
+  dirname(path): std.join(sep, lib.butLast(std.split(path, sep)))
+};
+
 local nfs(triple) = {
   lines:: {
     export: triple.server.path + " " + triple.client.node + defaults.options.export
   },
   urls:: {
-    mount: triple.server.path + ":" + triple.client.node
+    mount: triple.server.node + ":" + triple.server.path
   },
   parts:: {
     tags: [ triple.id, triple.uid ],
@@ -89,7 +95,9 @@ local nfs(triple) = {
           tasks.apt("nfs-common"),
           tasks.dir(triple.client.path, triple.user.name),
           tasks.mount($.urls.mount, triple.client.path),
-        ] + std.map(tasks.link, triple.client.links)
+        ]
+        + std.map(tasks.dir, std.map(lib.dirname, [l.name for l in triple.client.links]))
+        + std.map(tasks.link, triple.client.links)
       }
     ]
   },
