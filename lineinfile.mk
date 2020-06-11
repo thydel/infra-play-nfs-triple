@@ -1,4 +1,4 @@
-. := $(if $(filter $(words $(MAKEFILE_LIST)), 1), $(error $(MAKEFILE_LIST) is meant to be included))
+$(and $(if $(filter $(words $(MAKEFILE_LIST)), 1), $(error $(MAKEFILE_LIST) is meant to be included)),)
 
 ultimo := /proc/self
 $(ultimo): tmp/.stone;
