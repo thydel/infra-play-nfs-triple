@@ -23,9 +23,13 @@ SHELL := $(shell which bash)
 Import = $(eval $1: - := $$(eval $(or $3,$1.$2) := $$($2)))
 head: version := 1.0
 
-self    := $(firstword $(MAKEFILE_LIST))
-$(self) := $(basename $(self))
-$(self):;
+TOP    := $(firstword $(MAKEFILE_LIST))
+$(TOP) := $(basename $(TOP))
+
+Self  =
+Self += $(eval SELF    := $(lastword $(MAKEFILE_LIST)))
+Self += $(eval $(SELF) := $(basename $(SELF)))
+Self += $(eval $(SELF):;)
 
 top: phony; @date
 
