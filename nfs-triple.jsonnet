@@ -1,6 +1,6 @@
 #!/usr/bin/env jsonnet
 
-local triples = import 'data/oxa/apps/nfs-triple.json';
+local triples = import 'nfs-triple.json';
 
 local defaults = {
   options: {

@@ -1,14 +1,14 @@
 #!/usr/bin/make -f
 
-MAKEFLAGS += -Rr
-SHELL != which bash
+include head.mk
 
-self := $(lastword $(MAKEFILE_LIST))
+. := repo/infra-data-nfs-triple
 
-data := data/oxa/apps/nfs-triple.json
+tmp/nfs-triple.json: nfs-triple.jsonnet; $< -J $. > $@
 
-nfs-triple.json: nfs-triple.jsonnet $(data); $< > $@
+out/playbook.%.json: tmp/nfs-triple.json out/.stone; jq 'map(select(.tags|index("$*")))' $< > $(@)
 
-playbook.%.json: nfs-triple.json; jq 'map(select(.tags|index("$*")))' $< > $(@F)
+tags: jq := .triples|map("$(self) --no-print-directory out/playbook." + . + ".json")[]
+tags:; @jq -r '$(jq)' $./nfs-triple.json | dash
 
-tags:; @jq -r '.triples|map("$(self) playbook." + . + ".json")[]' $(data)
+main: phony tags
