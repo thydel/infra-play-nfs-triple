@@ -22,6 +22,7 @@ once := links exclude
 once: phony $(once)
 help.once := Runs once targets $(once)
 
+ifdef NEVER
 migrate = git -C $(src) format-patch --stdout --root $@ | git am -p1
 
 files := nfs-triple.mk nfs-triple.jsonnet
@@ -33,6 +34,7 @@ files := head.mk lineinfile.mk
 $(files): src := ../data-nfs-triple
 $(files):; $(migrate)
 migrate:: phony $(files)
+endif
 
 main: phony; nfs-triple.mk --no-print-directory
 
