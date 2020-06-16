@@ -20,7 +20,17 @@ SHELL := $(shell which bash)
 
 # $(call Import,$(rule),$(var)) -> define $(rule).$(var) as $(var) from $(rule)
 # $(call Import,$(rule),$(var),$(invar)) -> define $(invar) as $(var) from $(rule)
+ifdef NEVER
 Import = $(eval $1: - := $$(eval $(or $3,$1.$2) := $$($2)))
+endif
+define Import
+$(strip
+  $(eval ~ := $(strip $1))
+  $(eval 3 ?=)
+  $(if $3,
+    $(eval $~: - := $$(eval $3 := $$($(strip $2)))),
+    $(foreach _, $2, $(eval $~: - := $$(eval $~.$_ := $$($_))))))
+endef
 head: version := 1.0
 
 TOP    := $(firstword $(MAKEFILE_LIST))
