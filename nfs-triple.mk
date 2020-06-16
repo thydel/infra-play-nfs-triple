@@ -17,7 +17,7 @@ $~: $(tmp)/%.mk : $./%.json; jq -r '$(jq)' $< > $@
 $(TOP): $~
 -include $~
 mk: phony $~
-mk.help := Generates "$~" makefile setting the list of triple to be include
+mk.help := Generates "$~" makefile setting the list of triple to include
 helps += mk
 
 ~ := $(tmp)/nfs-triple.json

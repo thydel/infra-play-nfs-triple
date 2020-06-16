@@ -54,7 +54,7 @@ Generates playbook from nfs-triple data
 # Output of "make" (.i.e. "make help")
 endef
 
-tmp/readme.txt: $(TOP); @echo '$($@)' > $@
+tmp/readme.txt: $(TOP) nfs-triple.mk; @echo '$($@)' > $@
 ~ += tmp/help.txt
 $~: code := echo '```'
 $~: help := make $(submake) | sed -e '1d;$$d'

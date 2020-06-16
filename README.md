@@ -13,7 +13,7 @@ make install: nfs-triple.mk install
 make readme: Generates README.md from "make help"
 
 
-nfs-triple.mk mk: Generates "tmp/nfs-triple.mk" makefile setting the list of triple to be include
+nfs-triple.mk mk: Generates "tmp/nfs-triple.mk" makefile setting the list of triple to include
 nfs-triple.mk plays: Generates all playbook in "tmp/nfs-triple.json"
 nfs-triple.mk tags: Generates one playbook per triple in "out/playbook.%.json"
 nfs-triple.mk main: nfs-triple.mk tags
