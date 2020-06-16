@@ -3,6 +3,8 @@ $(and $(if $(filter $(words $(MAKEFILE_LIST)), 1), $(error $(MAKEFILE_LIST) is m
 $(Self)
 ~ := $($(SELF))
 
+$(foreach _, LOC_ROOT loc_root LOC_SET loc_set, $(eval $_ ?=))
+
 $~: dir.root := $(abspath $(or $(LOC_ROOT), $(loc_root), /usr/local))
 $~: dir.set := $(or $(LOC_SET), $(loc_set), epi)
 $~: - := $(foreach _, etc bin lib, $(eval $~: dir.$_ := $(dir.root)/$_))
