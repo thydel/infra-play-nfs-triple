@@ -39,17 +39,37 @@ $(files):; $(migrate)
 migrate:: phony $(files)
 endif
 
-main install: phony; nfs-triple.mk --no-print-directory --warn-undefined-variables $@
+submake := --no-print-directory --warn-undefined-variables
+
+main install: phony; nfs-triple.mk $(submake) $@
 main.help := nfs-triple.mk main
 install.help := nfs-triple.mk install
 helps += main install
+
+define tmp/readme.txt
+# infra-play-nfs-triple
+
+Generates playbook from nfs-triple data
+
+# Output of "make" (.i.e. "make help")
+endef
+
+tmp/readme.txt: $(TOP); @echo '$($@)' > $@
+~ += tmp/help.txt
+$~: code := echo '```'
+$~: help := make $(submake) | sed -e '1d;$$d'
+$~: tmp/.stone $(TOP); (echo; $(code); $(help); $(code)) > $@
+README.md: tmp/readme.txt tmp/help.txt; cat $^ > $@
+readme: phony README.md
+readme.help := Generates README.md from "make help"
+helps += readme
 
 help: self := $(strip $(if $(filter Makefile, $(TOP)), make, $(TOP)))
 help: help := echo;
 help: help += $(foreach _, $(helps), echo '$(self) $_: $($_.help)';)
 help: help += echo;
-help: help += nfs-triple.mk --no-print-directory help;
-help:; @($($@))
+help: help += nfs-triple.mk  $(submake) help;
+help:; @($($@)) | sed -e 's/  *$$//'
 
 # Local Variables:
 # indent-tabs-mode: nil
