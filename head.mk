@@ -12,7 +12,7 @@ SHELL := $(shell which bash)
 .RECIPEPREFIX :=
 .RECIPEPREFIX +=
 
-.DEFAULT_GOAL := main
+.DEFAULT_GOAL := help
 
 -: min := 4.1
 -: msg := make $(MAKE_VERSION) < $(min)
