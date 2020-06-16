@@ -5,7 +5,8 @@ local triples = import 'nfs-triple.json';
 local defaults = {
   options: {
     export: "(rw,sync,no_subtree_check)",
-    mount: "rw,hard,intr,noatime,nodiratime,noauto"
+    // mount: "rw,hard,intr,noatime,nodiratime,noauto"
+    mount: "noauto,rw,hard,intr,noatime,nodiratime"
   }
 };
 
@@ -28,6 +29,12 @@ local tasks = {
     lineinfile: {
       path: path,
       line: line
+    }
+  },
+  start(name): {
+    service: {
+      name: name,
+      state: "started"
     }
   },
   restart(name): {
@@ -86,7 +93,8 @@ local nfs(triple) = {
           tasks.apt("nfs-kernel-server"),
           tasks.dir(triple.server.path, triple.user.name),
           tasks.lineinfile("/etc/exports", $.lines.export),
-          tasks.restart("nfs-kernel-server")
+          // tasks.restart("nfs-kernel-server")
+          tasks.start("nfs-kernel-server")
         ]
       },
       {
