@@ -52,13 +52,28 @@ local tasks = {
       state: "mounted"
     }
   },
-  link(link): {
-    file: {
-      src: link.target,
-      dest: link.name,
-      state: "link"
+  link(link): [
+    {
+      stat: {
+        path: link.target
+      },
+      register: "target"
     },
-  },
+    {
+      file: {
+        src: link.target,
+        dest: link.name,
+        state: "link"
+      },
+      when: "target.stat.exists == True"
+    },
+    {
+      debug: {
+        msg: "symlink " + link.target + " " + link.name,
+      },
+      when: "target.stat.exists == False"
+    }
+  ]
 };
 
 local plays = {
@@ -105,7 +120,7 @@ local nfs(triple) = {
           tasks.mount($.urls.mount, triple.client.path),
         ]
         + std.map(tasks.dir, std.map(lib.dirname, [l.name for l in triple.client.links]))
-        + std.map(tasks.link, triple.client.links)
+        + std.flatMap(tasks.link, triple.client.links)
       }
     ]
   },
