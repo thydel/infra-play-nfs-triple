@@ -12,8 +12,8 @@ local defaults = {
 
 local tasks = {
   command(cmd): {
-    'ansible.builtin.command': {
-      name: cmd,
+    name: cmd,
+    command: {
       cmd: cmd
     }
   },
