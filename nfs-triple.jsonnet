@@ -11,6 +11,12 @@ local defaults = {
 };
 
 local tasks = {
+  command(cmd): {
+    'ansible.builtin.command': {
+      name: cmd,
+      cmd: cmd
+    }
+  },
   apt(names): {
     apt: {
       name: if std.isString(names) then [names] else names
@@ -98,6 +104,14 @@ local nfs(triple) = {
   urls:: {
     mount: triple.server.node + ":" + triple.server.path
   },
+  cmds:: {
+    exportfs: 'exportfs -ar'
+  },
+  notifies: {
+    exportfs: {
+      notify: [ $.cmds.exportfs ]
+    }
+  },
   parts:: {
     tags: [ triple.id, triple.uid ],
     common(play): plays.become(play) + plays.tags(play, self.tags),
@@ -107,10 +121,13 @@ local nfs(triple) = {
         tasks: [
           tasks.apt("nfs-kernel-server"),
           tasks.dir(triple.server.path, triple.user.name),
-          tasks.lineinfile("/etc/exports", $.lines.export),
+          tasks.lineinfile("/etc/exports", $.lines.export) + $.notifies.exportfs,
           // tasks.restart("nfs-kernel-server")
           tasks.start("nfs-kernel-server")
-        ]
+        ],
+        handlers: [
+          tasks.command($.cmds.exportfs)
+        ],
       },
       {
         hosts: triple.client.name,
