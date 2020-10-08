@@ -44,17 +44,16 @@ help += yml
 
 $(call Import, conf, dir.bin)
 
-. := yq
-~ := $(conf.dir.bin)/$.
+~ := $(conf.dir.bin)/yq
 $~: arch != uname -m
 $~: x86_64 := amd64
 $~: version := 3.4.0
 $~: binary = yq_linux_$($(arch))
 $~: url = https://github.com/mikefarah/yq/releases/download/$(version)/$(binary)
 $~:; wget $(url) -O - | install /dev/stdin $@
-$.: phony $~
-$..help := Download and install $.
-help += $.
+yq: phony $~
+yq.help := Download and install yq
+help += yq
 
 ifdef NEVER
 tags: jq := .triples|map("$(TOP) --no-print-directory $(out)/playbook." + . + ".json")[]
