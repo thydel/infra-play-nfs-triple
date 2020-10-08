@@ -118,6 +118,11 @@ local nfs(triple) = {
     plays: [
       {
         hosts: triple.server.name,
+        collections: [
+          'ansible.builtin',
+          'ansible.posix',
+          'community.general'
+        ],
         tasks: [
           tasks.apt("nfs-kernel-server"),
           tasks.dir(triple.server.path, triple.user.name),
