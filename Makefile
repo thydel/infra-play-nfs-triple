@@ -41,7 +41,7 @@ endif
 
 submake := --no-print-directory --warn-undefined-variables
 
-main install: phony; nfs-triple.mk $(submake) $@
+main yml yq install: phony; nfs-triple.mk $(submake) $@
 main.help := nfs-triple.mk main
 install.help := nfs-triple.mk install
 helps += main install
