@@ -11,6 +11,9 @@ local defaults = {
 };
 
 local tasks = {
+  noop: {
+    meta: "noop"
+  },
   command(cmd): {
     name: cmd,
     command: {
@@ -22,19 +25,56 @@ local tasks = {
       name: if std.isString(names) then [names] else names
     }
   },
-  dir(path, user = 'root'): {
+  dir(path, user = 'root', state = 'directory'): {
     file: {
       path: path,
       mode: "755",
-      state: "directory",
+      state: state,
       owner: user,
       group: user
     },
   },
+  // brain dammage module has no way to remove empty dir only
+  // undir(path, user): self.dir(path, user, 'absent'),
+  undir(path): [
+    {
+      stat: {
+        path: path,
+      },
+      register: "path"
+    },
+    {
+      find: {
+        paths: path,
+        recurse: false
+      },
+      register: "find",
+    },
+    // still not safe enuf for me
+    // { file: { path: path, state: 'absent' }, when: "find.mathed|int == 0" },
+    {
+      command: {
+        argv: [
+          "rmdir",
+          path
+        ],
+        warn: false // yet file mod insists we take a dangereous path
+      },
+      when: "path.stat.exists == True and find.matched|int == 0",
+    }
+  ],
   lineinfile(path, line): {
     lineinfile: {
       path: path,
       line: line
+    }
+  },
+  comment(path, line): {
+    local quote(s) = std.foldl(function(s, c) std.strReplace(s, c, "\\" + c), std.stringChars("()"), s),
+    replace: {
+      path: path,
+      regexp: "^" + quote(line),
+      replace: "#" + line
     }
   },
   start(name): {
@@ -58,6 +98,23 @@ local tasks = {
       state: "mounted"
     }
   },
+  umount(url, mountpoint): self.mount(url, mountpoint) + { mount +: { state: "umounted" }},
+  nomount(url, mountpoint): self.mount(url, mountpoint) + { mount +: { state: "absent" }},
+  unlink(link): [
+    {
+      stat: {
+        path: link.name
+      },
+      register: "link_name"
+    },
+    {
+      file: {
+        path: link.name,
+        state: "absent"
+      },
+      when: "link_name.stat.islnk is defined and link_name.stat.islnk"
+    }
+  ],
   link(link): [
     {
       stat: {
@@ -112,17 +169,18 @@ local nfs(triple) = {
       notify: [ $.cmds.exportfs ]
     }
   },
+  collections:: [
+    'ansible.builtin',
+    'ansible.posix',
+    'community.general'
+  ],
   parts:: {
     tags: [ triple.id, triple.uid ],
     common(play): plays.become(play) + plays.tags(play, self.tags),
     plays: [
       {
         hosts: triple.server.name,
-        collections: [
-          'ansible.builtin',
-          'ansible.posix',
-          'community.general'
-        ],
+        collections: $.collections,
         tasks: [
           tasks.apt("nfs-kernel-server"),
           tasks.dir(triple.server.path, triple.user.name),
@@ -144,9 +202,29 @@ local nfs(triple) = {
         + std.map(tasks.dir, std.map(lib.dirname, [l.name for l in triple.client.links]))
         + std.flatMap(tasks.link, triple.client.links)
       }
+    ],
+    untags: std.map(function(s) "undo-" + s, self.tags),
+    uncommon(play): plays.become(play) + plays.tags(play, self.untags),
+    unplays: [
+      {
+        hosts: triple.client.name,
+        collections: $.collections,
+        tasks: [
+          tasks.nomount($.urls.mount, triple.client.path),
+          tasks.noop
+        ]
+        + std.flatMap(tasks.unlink, triple.client.links)
+      },
+      {
+        hosts: triple.server.name,
+        tasks: [
+          tasks.comment("/etc/exports", $.lines.export),
+        ]
+        + tasks.undir(triple.server.path),
+      }
     ]
   },
-  plays: std.map(self.parts.common, self.parts.plays)
+  plays: std.map(self.parts.common, self.parts.plays) + std.map(self.parts.uncommon, self.parts.unplays)
 };
 
 std.flattenArrays(std.map(function(t) nfs(triples.by_triple[t]).plays, triples.triples))
