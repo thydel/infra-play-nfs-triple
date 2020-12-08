@@ -34,6 +34,14 @@ tags: phony $(install)
 tags.help := Generates one playbook per triple in "$(out)/playbook.%.json"
 helps += tags
 
+~ := $(out)/unplaybook.%.json
+$~: jq = map(select(.tags|index("undo-$*")))
+$~: $(tmp)/nfs-triple.json $(out)/.stone; jq '$(jq)' $< > $(@)
+install += $($($(TOP)):%=$~)
+untags: phony $(install)
+untags.help := Generates one unplaybook per triple in "$(out)/unplaybook.%.json"
+helps += tags
+
 ~ := $(out)/playbook.%.yml
 $~: $(~:%.yml=%.json); yq r -P $< > $@
 yml := $($($(TOP)):%=$~)
@@ -41,6 +49,14 @@ install += $(yml)
 yml: phony yq $(yml)
 yml.help := Generates yaml version of all json playbooks
 help += yml
+
+~ := $(out)/unplaybook.%.yml
+$~: $(~:%.yml=%.json); yq r -P $< > $@
+unyml := $($($(TOP)):%=$~)
+install += $(unyml)
+unyml: phony yq $(unyml)
+unyml.help := Generates yaml version of all json unplaybooks
+help += unyml
 
 $(call Import, conf, dir.bin)
 
@@ -60,7 +76,7 @@ tags: jq := .triples|map("$(TOP) --no-print-directory $(out)/playbook." + . + ".
 tags: phony; @jq -r '$(jq)' $./nfs-triple.json | dash
 endif
 
-main: phony tags
+main: phony tags untags yml unyml
 main.help := $(TOP) tags
 helps += main
 
