@@ -4,7 +4,7 @@ local triples = import 'nfs-triple.json';
 
 local defaults = {
   options: {
-    export: "(rw,sync,no_subtree_check)",
+    export: [ "rw", "sync", "no_subtree_check" ],
     // mount: "rw,hard,intr,noatime,nodiratime,noauto"
     mount: "noauto,rw,hard,intr,noatime,nodiratime"
   }
@@ -155,8 +155,11 @@ local lib = {
 };
 
 local nfs(triple) = {
+  options:: {
+    export: if triple.user.name == "root" then [ "no_root_squash" ] else []
+  },
   lines:: {
-    export: triple.server.path + " " + triple.client.node + defaults.options.export
+    export: triple.server.path + " " + triple.client.node + "(" + std.join(",", defaults.options.export + $.options.export) + ")"
   },
   urls:: {
     mount: triple.server.node + ":" + triple.server.path
