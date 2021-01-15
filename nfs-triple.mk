@@ -28,7 +28,8 @@ helps += plays
 
 ~ := $(out)/playbook.%.json
 $~: jq = map(select(.tags|index("$*")))
-$~: $(tmp)/nfs-triple.json $(out)/.stone; jq '$(jq)' $< > $(@)
+$~: install := install --backup=t /dev/stdin
+$~: $(tmp)/nfs-triple.json $(out)/.stone; jq '$(jq)' $< | $(install) $(@)
 install += $($($(TOP)):%=$~)
 tags: phony $(install)
 tags.help := Generates one playbook per triple in "$(out)/playbook.%.json"
@@ -36,11 +37,14 @@ helps += tags
 
 ~ := $(out)/unplaybook.%.json
 $~: jq = map(select(.tags|index("undo-$*")))
-$~: $(tmp)/nfs-triple.json $(out)/.stone; jq '$(jq)' $< > $(@)
+$~: install := install --backup=t /dev/stdin
+$~: $(tmp)/nfs-triple.json $(out)/.stone; jq '$(jq)' $< | $(install) $(@)
 install += $($($(TOP)):%=$~)
 untags: phony $(install)
 untags.help := Generates one unplaybook per triple in "$(out)/unplaybook.%.json"
 helps += tags
+
+playdiff/%: $(out)/playbook.%.json phony; -ls -t $<* | head -2 | tac | xargs diff
 
 ~ := $(out)/playbook.%.yml
 $~: $(~:%.yml=%.json); yq r -P $< > $@
