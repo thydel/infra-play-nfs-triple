@@ -46,8 +46,16 @@ helps += tags
 
 playdiff/%: $(out)/playbook.%.json phony; -ls -t $<* | head -2 | tac | xargs diff
 
+yq.version.out != yq --version
+yq.version := $(word $(words $(yq.version.out)),$(yq.version.out))
+ifeq ($(yq.version),4.9.5)
+yq := yq e
+else
+yq := yq r
+endif
+
 ~ := $(out)/playbook.%.yml
-$~: $(~:%.yml=%.json); yq r -P $< > $@
+$~: $(~:%.yml=%.json); $(yq) -P $< > $@
 yml := $($($(TOP)):%=$~)
 install += $(yml)
 yml: phony yq $(yml)
@@ -55,7 +63,7 @@ yml.help := Generates yaml version of all json playbooks
 help += yml
 
 ~ := $(out)/unplaybook.%.yml
-$~: $(~:%.yml=%.json); yq r -P $< > $@
+$~: $(~:%.yml=%.json); $(yq) -P $< > $@
 unyml := $($($(TOP)):%=$~)
 install += $(unyml)
 unyml: phony yq $(unyml)
