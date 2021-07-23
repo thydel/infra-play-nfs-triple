@@ -215,7 +215,7 @@ local nfs(triple) = {
         hosts: triple.client.name,
         tasks: [
           tasks.apt("nfs-common"),
-          { when: false } + tasks.user(triple.user +
+          { when: "skip_user is not defined" } + tasks.user(triple.user +
             if std.objectHas(triple.client, "home") then
             {
               home: triple.client.home
