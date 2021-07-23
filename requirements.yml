@@ -1,7 +1,18 @@
 ---
 
+# sudo aptitude install python3-packaging
 # ansible-galaxy install -r requirements.yml
+
+# ansible-galaxy collection list
+#
+# ansible-galaxy collection verify ansible.posix
+# ansible-galaxy collection install --upgrade ansible.posix
+#
+# ansible-galaxy collection verify -r requirements.yml
+# ansible-galaxy collection install --upgrade -r requirements.yml
 
 collections:
   - ansible.posix
   - community.general
+
+...
