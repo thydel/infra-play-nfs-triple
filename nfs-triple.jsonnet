@@ -11,9 +11,8 @@ local defaults = {
 };
 
 local tasks = {
-  noop: {
-    meta: "noop"
-  },
+  [k]: { meta: k } for k in [ "noop", "end_play" ]
+  } + {
   command(cmd): {
     name: cmd,
     command: {
@@ -24,6 +23,17 @@ local tasks = {
     apt: {
       name: if std.isString(names) then [names] else names
     }
+  },
+  user(u):
+    assert std.objectHas(u, "name");
+  {
+    user: {
+      [k]: u[k] for k in [ "name", "uid", "home", "comment", "shell" ] if std.objectHas(u, k)
+    } + {
+      system: true,
+      create_home: false,
+      update_password: "on_create",
+    },
   },
   dir(path, user = 'root', state = 'directory'): {
     file: {
@@ -186,6 +196,12 @@ local nfs(triple) = {
         collections: $.collections,
         tasks: [
           tasks.apt("nfs-kernel-server"),
+          tasks.user(triple.user +
+            {
+              home:triple.server.path,
+              shell: "/bin/false",
+            }
+          ),
           tasks.dir(triple.server.path, triple.user.name),
           tasks.lineinfile("/etc/exports", $.lines.export) + $.notifies.exportfs,
           // tasks.restart("nfs-kernel-server")
@@ -199,6 +215,16 @@ local nfs(triple) = {
         hosts: triple.client.name,
         tasks: [
           tasks.apt("nfs-common"),
+          { when: false } + tasks.user(triple.user +
+            if std.objectHas(triple.client, "home") then
+            {
+              home: triple.client.home
+            } else {} +
+            {
+              // home: triple.client.links[1].name,
+              shell: if std.objectHas(triple.client, "shell") then triple.client.shell else "/bin/false",
+            }
+          ),
           tasks.dir(triple.client.path, triple.user.name),
           tasks.mount($.urls.mount, triple.client.path),
         ]
