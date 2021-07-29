@@ -26,6 +26,7 @@ local tasks = {
   },
   user(u):
     assert std.objectHas(u, "name");
+    if std.objectHas(u, "exists") then { meta: "noop" } else
   {
     user: {
       [k]: u[k] for k in [ "name", "uid", "home", "comment", "shell" ] if std.objectHas(u, k)
