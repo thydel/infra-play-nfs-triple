@@ -48,7 +48,7 @@ playdiff/%: $(out)/playbook.%.json phony; -ls -t $<* | head -2 | tac | xargs dif
 
 yq.version.out != yq --version
 yq.version := $(word $(words $(yq.version.out)),$(yq.version.out))
-ifeq ($(yq.version),4.9.5)
+ifeq ($(findstring 4., $(yq.version)), 4.)
 yq := yq e
 else
 yq := yq r
