@@ -69,7 +69,8 @@ local tasks = {
           "rmdir",
           path
         ],
-        warn: false // yet file mod insists we take a dangereous path
+        // warn has been removed in 2.14
+        // warn: false // yet file mod insists we take a dangereous path
       },
       when: "path.stat.exists == True and find.matched|int == 0",
     }
