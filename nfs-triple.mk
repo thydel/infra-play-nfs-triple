@@ -50,6 +50,7 @@ yq.version.out != yq --version
 yq.version := $(word $(words $(yq.version.out)),$(yq.version.out))
 ifeq ($(findstring 4., $(yq.version)), 4.)
 yq := yq e
+yq := yq -P -oy
 else
 yq := yq r
 endif
@@ -76,6 +77,7 @@ $(call Import, conf, dir.bin)
 $~: arch != uname -m
 $~: x86_64 := amd64
 $~: version := 3.4.0
+$~: version := v4.34.1
 $~: binary = yq_linux_$($(arch))
 $~: url = https://github.com/mikefarah/yq/releases/download/$(version)/$(binary)
 $~:; wget $(url) -O - | install /dev/stdin $@
